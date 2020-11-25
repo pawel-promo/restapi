@@ -1,0 +1,50 @@
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        public: false
+
+    # instances of
+    _instanceof:
+        Application\Share\Bus\Command\CommandHandlerInterface:
+            public: true
+            tags:
+                - { name: tactician.handler, typehints: true }
+
+        Application\Share\Bus\Query\QueryHandlerInterface:
+            public: true
+            tags:
+                - { name: tactician.handler, typehints: true }
+
+        UI\Http\Rest\Controller\ControllerInterface:
+            public: true
+            tags:
+                - { name: controller.service_arguments }
+
+    Application\:
+        resource: '../src/Application'
+
+    Infrastructure\:
+        resource: '../src/Infrastructure'
+
+    Domain\:
+        resource: '../src/Domain'
+        exclude: '../../src/Domain/Product/Model'
+
+    UI\:
+        resource: '../src/UI'
+
+
+    Infrastructure\Share\Communication\PromoProductAPIRestClient:
+        class: Infrastructure\Share\Communication\RestClient
+        arguments:
+            $host: "%env(PROMO_PRODUCT_API_URL)%"
+
+    Infrastructure\Product\Communication\Read\RestReadProductAttributesClient:
+        arguments:
+            $restClient: '@Infrastructure\Share\Communication\PromoProductAPIRestClient'
